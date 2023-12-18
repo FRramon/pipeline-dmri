@@ -6,9 +6,9 @@ from bids.layout import BIDSLayout
 
 convert2bids = False
 run_pipeline = False
-createMatrixes = True
+createMatrixes = False
 QAcheck = False
-bundleSegmentation= False
+bundleSegmentation= True
 
 source_dir = '/mnt/CONHECT_data'
 

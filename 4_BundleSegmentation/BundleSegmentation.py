@@ -20,16 +20,7 @@ session_raw = sys.argv[2]
 subject_list = subject_raw.split(',')
 ses_list = session_raw.split(',')
 
-mni_file='/home/francoisramon/miniconda3/lib/python3.11/site-packages/tractseg/resources/MNI_FA_template.nii.gz'
-b=False
-c=False
-d=False
-d2 = False
-e2 = False
-e = False
-e3 = True
-f2 = True
-f = False
+from BundleSegmentationParameters import *
 
 for sub in subject_list:
 
@@ -59,38 +50,47 @@ for sub in subject_list:
 
 		dwimif = bundle_dir + '/DWI.mif'
 		if not os.path.isfile(dwimif):
-			print('Concatenating dwis')
+			print('--- [Node] : Concatenating DWIs')
 			command_cat = f'dwicat {dwi_dir}/_mrconvertPA0/dwi.mif {dwi_dir}/_mrconvertPA1/dwi.mif {dwi_dir}/_mrconvertPA2/dwi.mif {bundle_dir}/DWI.mif -force'
 			subprocess.run(command_cat, shell = True)
-
+		elif verbose == True: 
+			print('--- [Node] : DWI concatenation already done')
 		
 		dwinii = bundle_dir + '/DWI.nii.gz'
-		if not os.path.exists(dwinii):
-			print('Convert dwi to nifti')
+		if not os.path.isfile(dwinii):
+			print('--- [Node] : Convert dwi to nifti')
 			command_convert_dwi = f'mrconvert {bundle_dir}/DWI.mif {bundle_dir}/DWI.nii.gz -export_grad_fsl {bundle_dir}/bvec.bvecs {bundle_dir}/bval.bvals -force'
 			subprocess.run(command_convert_dwi, shell = True)
+		elif verbose == True: 
+			print('--- [Node] : DWI conversion from mif to nifti already done')
 		
 		masknii = bundle_dir + '/brainmask.nii.gz'
-		if not os.path.exists(masknii):
-			print('Convert Mask to nifti')
+		if not os.path.isfile(masknii):
+			print('--- [Node] : Convert Mask to nifti')
 			command_convert_mask = f'mrconvert {main_workflow_dir}/wf_tractography/{identifier}/brainmask/brainmask.mif {bundle_dir}/brainmask.nii.gz -force'
 			subprocess.run(command_convert_mask, shell = True)
+		elif verbose == True: 
+			print('--- [Node] : Mask conversion to nifti already done')
 
 		FAnii = bundle_dir + '/FA.nii.gz'
-		if not os.path.exists(FAnii):
-			print('Computing FA for MNI registration')
+		if not os.path.isfile(FAnii):
+			print('--- [Node] : Computing FA for MNI registration')
 			command_calcFA = f'calc_FA -i {bundle_dir}/DWI.nii.gz -o {bundle_dir}/FA.nii.gz --bvals {bundle_dir}/bval.bvals --bvecs {bundle_dir}/bvec.bvecs --brain_mask {bundle_dir}/brainmask.nii.gz'
 			subprocess.run(command_calcFA, shell = True)
+		elif verbose == True: 
+			print('--- [Node] : FA already computed')
 
 		FAMNInii = bundle_dir + '/FA_MNI.nii.gz'
 		if not os.path.isfile(FAMNInii):
-			print('Computing flirt mat for MNI registration')
+			print('--- [Node] : Computing flirt mat for MNI registration')
 			command_calcFA = f'flirt -ref {mni_file} -in {bundle_dir}/FA.nii.gz -out {bundle_dir}/FA_MNI.nii.gz -omat {bundle_dir}/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo'
 			subprocess.run(command_calcFA, shell = True)
+		elif verbose == True: 
+			print('--- [Node] : MNI registration already applied to FA')
 
 		diffusion_mni_nii = bundle_dir + '/Diffusion_MNI.nii.gz'
 		if not os.path.isfile(diffusion_mni_nii):
-			print('apply transformation MNI registration on dwi')
+			print('--- [Node] : Apply transformation MNI registration on dwi')
 			command_1 = f'flirt -ref {mni_file} -in {bundle_dir}/DWI.nii.gz -out {bundle_dir}/Diffusion_MNI.nii.gz -applyxfm -init {bundle_dir}/FA_2_MNI.mat -dof 6'
 			subprocess.run(command_1, shell = True)
 
@@ -99,102 +99,101 @@ for sub in subject_list:
 
 			command_3 = f'rotate_bvecs -i {bundle_dir}/bvec.bvecs -t {bundle_dir}/FA_2_MNI.mat -o {bundle_dir}/MNI_bvec.bvecs'
 			subprocess.run(command_3, shell = True)
-
-		output = os.path.join(bundle_dir,'tractseg_output')
-		# if not os.path.exists(output):
-		# 	print('apply TractSeg')
-		# 	command = f'TractSeg -i {bundle_dir}/Diffusion_MNI.nii.gz -o {bundle_dir}/tractseg_output --output_type tract_segmentation --raw_diffusion_input --bvals {bundle_dir}/MNI_bval.bvals --bvecs {bundle_dir}/MNI_bvec.bvecs --csd_type csd_msmt --super_resolution'
-		# 	subprocess.run(command,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : MNI registration already applied to DWI')
 
 
-		if b:
+		outputdir = bundle_dir + '/tractseg_output'
+		if not os.path.exists(outputdir):
+			print('--- [Node] : Creating output directory')
+			os.mkdir(outputdir)
+		elif verbose == True: 
+			print('--- [Node] : /tractseg_output directory already created  ')
+
+		
+		segdir = outputdir + '/bundle_segmentations'
+		if not os.path.exists(segdir):
+			os.mkdir(segdir)
+			print('apply TractSeg')
+			command = f'TractSeg -i {bundle_dir}/Diffusion_MNI.nii.gz -o {bundle_dir}/tractseg_output --output_type tract_segmentation --raw_diffusion_input --bvals {bundle_dir}/MNI_bval.bvals --bvecs {bundle_dir}/MNI_bvec.bvecs --csd_type csd_msmt --super_resolution'
+			subprocess.run(command,shell = True)
+
+			# command_rm = f'rm {segdir}/.tck'
+			# subprocess.run(command_rm,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : Tractseg already segmented bundle volumes')	
+
+
+		mni2fa = bundle_dir + '/MNI_2_FA.mat'
+		if not os.path.isfile(mni2fa):
 			command = f'convert_xfm -omat {bundle_dir}/MNI_2_FA.mat -inverse {bundle_dir}/FA_2_MNI.mat'
+			print(command)
 			subprocess.run(command,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : MNI to FA registration  matrix already created')	
+		
 
-		if c:
+		segSubject = outputdir + '/segmentation_subject_space'
+		if not os.path.exists(segSubject):
+			os.mkdir(segSubject)
+			print('--- [Node] : Moving bundles masks to subject space')
 			bundles_MNI = os.listdir(os.path.join(output,'bundle_segmentations'))
-			segMNI = os.path.join(output,'bundle_segmentations')
-			#segPatient = os.mkdir(os.path.join(output,'segmentation_subject_space'))
-			segPatient = os.path.join(output,'segmentation_subject_space')
+			
 			for bundles in bundles_MNI:
-				print(bundles)
-				command = f'flirt -ref {bundle_dir}/FA.nii.gz -in {segMNI}/{bundles} -out {segPatient}/subject_space_{bundles} -applyxfm -init {bundle_dir}/MNI_2_FA.mat -dof 6 -interp spline'
+				if verbose: print(f'Moving {bundles} to subject space')
+				command = f'flirt -ref {bundle_dir}/FA.nii.gz -in {segdir}/{bundles} -out {segSubject}/subject_space_{bundles} -applyxfm -init {bundle_dir}/MNI_2_FA.mat -dof 6 -interp spline'
 				subprocess.run(command,shell=True)
+		elif verbose == True:
+			print('--- [Node] : Bundles already transformed to subject space')
 
-		if d:
-			print('mask streamlines into bundle')
-			bundles_patients = os.listdir(os.path.join(output,'segmentation_subject_space'))
-			#segPatient = os.path.join(output,'bundle_segmentations')
-			#segPatient = os.mkdir(os.path.join(output,'segmentation_subject_space'))
-			segPatient = os.path.join(output,'segmentation_subject_space')
-			#tracts_subject = os.mkdir(os.path.join(output,'tracts_subject'))
-			tracts_subject= os.path.join(output,'tracts_subject')
-			for bundles in bundles_patients:
-			
-				tract_name = bundles[:-7] + '.tck'
-				#print(tract_name)
-				command = f'tckedit -mask {segPatient}/{bundles} {tracto_dir}/tcksift2/sift_tracks.tck {tracts_subject}/{tract_name} -force'
-				print(command)
-				subprocess.run(command,shell=True)
 
-		if d2:
-			print('mask streamlines into bundle')
-			bundles_patients = os.listdir(os.path.join(output,'segmentation_subject_space'))
-			#segPatient = os.path.join(output,'bundle_segmentations')
-			#os.mkdir(os.path.join(output,'segmentation_subject_space_inverse'))
-			segPatient = os.path.join(output,'segmentation_subject_space')
-			segInverse = os.path.join(output,'segmentation_subject_space_inverse')
-			for bundles in bundles_patients:
+
+		segInverse = outputdir + '/segmentation_subject_space_inverse'
+		if not os.path.exists(segInverse):
+			os.mkdir(segInverse)
+			print('--- [Node] : Inversing pixels in bundle masks')
+			bundles_subject = os.listdir(segSubject)
+			for bundles in bundles_subject:
+				if verbose: print(f'	--- Inversing {bundles}')
 				tract_name = bundles[14:-7] + '.mif'
-				#print(tract_name)
-				command = f'mrthreshold {segPatient}/{bundles} -invert {segInverse}/{tract_name} -force'
-				print(command)
+				command = f'mrthreshold {segSubject}/{bundles} -invert {segInverse}/{tract_name} -force'
 				subprocess.run(command,shell=True)
+		elif verbose == True:
+			print('--- [Node] : Bundle mask already inverted')
 
 
-		if e2:
-			print('mask streamlines into bundle - with exclude')
-			bundles_patients = os.listdir(os.path.join(output,'segmentation_subject_space_inverse'))
-			#segPatient = os.path.join(output,'bundle_segmentations')
-			#segPatient = os.mkdir(os.path.join(output,'segmentation_subject_space'))
-			segInverse = os.path.join(output,'segmentation_subject_space_inverse')
-			#os.mkdir(os.path.join(output,'tracts_subject_2'))
-			tracts_subject= os.path.join(output,'tracts_subject_2')
-			for bundles in bundles_patients:
-			
+		tracts_subject_masked = outputdir + '/tracts_subject_masked'
+		if not os.path.exists(tracts_subject_masked):
+			os.mkdir(tracts_subject_masked)
+			print('--- [Node] : mask streamlines into bundle - with exclude')
+			bundles_subject = os.listdir(segInverse)
+			for bundles in bundles_subject:
+				if verbose: print(f'	--- masking {bundles}')
 				tract_name = bundles[:-4] + '.tck'
-				#print(tract_name)
-				command = f'tckedit -exclude {segInverse}/{bundles} {tracto_dir}/tcksift2/sift_tracks.tck {tracts_subject}/{tract_name} -force'
+				command = f'tckedit -exclude {segInverse}/{bundles} {tracto_dir}/tcksift2/sift_tracks.tck {tracts_subject_masked}/{tract_name} -force'
 				print(command)
 				subprocess.run(command,shell=True)
+		elif verbose == True:
+			print('--- [Node] : masking streamlines into bundles by exclusion already done')
 
 
-		if e3:
-			print('filter to 3k fibres')
-			tracts_list = os.listdir(os.path.join(output,'tracts_subject_2'))
-		
-			#segInverse = os.path.join(output,'segmentation_subject_space_inverse')
-		
-			tracts_subject= os.path.join(output,'tracts_subject_2')
-
-
-			os.mkdir(os.path.join(output,'5k_tracts'))
-			tracts_3k_dir = os.path.join(output,'5k_tracts')
-
+		tracts_5k = outputdir + '/tracts_5k'
+		if not os.path.exists(tracts_5k):
+			os.mkdir(tracts_5k)
+			print('--- [Node] : filter to 5k fibres')
+			tracts_list = os.listdir(tracts_subject_masked)
 			for tracts in tracts_list:
-			
-				#tract_name = bundles[:-4] + '.tck'
-				#print(tract_name)
-				command = f'tckedit  {tracts_subject}/{tracts} -number 5k {tracts_3k_dir}/3k_{tracts} -force'
+				command = f'tckedit  {tracts_subject_masked}/{tracts} -number 5k {tracts_5k}/5k_{tracts} -force'
 				print(command)
 				subprocess.run(command,shell=True)
+		elif verbose == True:
+			print('--- [Node] : Filtering to 5k fibers per bundle for visualization already done')
 
 
-		if e:
-			print('Viewing whole segmentation')
+		if ViewAllTracts:
+			print('--- [Node] : Viewing whole 5k segmentation')
 			
-			tracts_subject= os.path.join(output,'tracts_subject')
-			tracts_list = os.listdir(tracts_subject)
+			tracts_list = os.listdir(tracts_subject_masked)
 
 			command = f'mrview {freesurfer_dir}/brain.mgz '
 			for tracts in tracts_list:
@@ -204,18 +203,18 @@ for sub in subject_list:
 				B = np.random.choice(range(256))
 
 		
-				command_i = f'-tractography.load {tracts_subject}/{tracts} -tractography.geometry lines -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
+				command_i = f'-mode 3 -imagevisible 0 -tractography.load {tracts_subject_masked}/{tracts} -tractography.geometry pseudotubes -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
 				command += command_i
 
 			#print(command)
 			subprocess.run(command,shell = True)
 
 
-		if f2:
-			print('Viewing whole segmentation 2')
+		if View5kTracts:
+			print('--- [Node] : Viewing whole segmentation ')
 			
-			tracts_subject= os.path.join(output,'5k_tracts')
-			tracts_list = os.listdir(tracts_subject)
+			
+			tracts_list = os.listdir(tracts_5k)
 
 			command = f'mrview {freesurfer_dir}/brain.mgz '
 			for tracts in tracts_list:
@@ -225,7 +224,7 @@ for sub in subject_list:
 				B = np.random.choice(range(256))
 
 		
-				command_i = f'-tractography.load {tracts_subject}/{tracts} -tractography.geometry lines -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
+				command_i = f' -mode 3 -imagevisible 0 -tractography.load {tracts_5k}/{tracts} -tractography.geometry pseudotubes -tractography.thickness 0.1 -tractography.colour {R},{G},{B} -tractography.opacity 1' 
 				command += command_i
 
 			#print(command)
@@ -233,9 +232,7 @@ for sub in subject_list:
 
 
 
-
-
-		if f:
+		if ViewTractSegTracts:
 			print('Viewing whole segmentation tractseg')
 			
 			tracts_seg= os.path.join(output,'TOM_trackings')
