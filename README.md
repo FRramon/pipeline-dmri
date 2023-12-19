@@ -44,6 +44,9 @@ createMatrixes = True
 ### IV. Bundle Segmentation
 
 Execute the following bundle identification using TractSeg
+``` python
+bundleSegmentation = True
+```
 
 ![image](https://github.com/FRramon/pipeline-dmri/assets/109392345/6816fd8d-8569-46c3-ad7a-603eaad1a35e)
 
