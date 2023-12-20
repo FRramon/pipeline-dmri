@@ -113,8 +113,10 @@ digraph main_workflow{
       fillcolor="#B4B4FF";
       label="connectome";
     main_workflow_connectome_labelconvert[label="labelconvert (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_connectome_transform_parcels[label="transform_parcels (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
     main_workflow_connectome_tck2connectome[label="tck2connectome (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
-    main_workflow_connectome_labelconvert -> main_workflow_connectome_tck2connectome;
+    main_workflow_connectome_labelconvert -> main_workflow_connectome_transform_parcels;
+    main_workflow_connectome_transform_parcels -> main_workflow_connectome_tck2connectome;
   }
   main_workflow_join_FOD -> main_workflow_datasink;
   main_workflow_join_Tracto -> main_workflow_datasink;
@@ -132,6 +134,7 @@ digraph main_workflow{
   main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_dwiresponse;
   main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_dwi2fod;
   main_workflow_preproc_biascorrect -> main_workflow_datasink;
+  main_workflow_wf_tractography_transformconvert -> main_workflow_connectome_transform_parcels;
   main_workflow_wf_tractography_tcksift2 -> main_workflow_connectome_tck2connectome;
   main_workflow_wf_tractography_dwiresponse -> main_workflow_join_FOD;
   main_workflow_wf_tractography_dwi2fod -> main_workflow_join_FOD;
@@ -139,6 +142,6 @@ digraph main_workflow{
   main_workflow_wf_tractography_transformT1 -> main_workflow_join_FOD;
   main_workflow_wf_tractography_tckgen -> main_workflow_join_Tracto;
   main_workflow_wf_tractography_tcksift2 -> main_workflow_join_Tracto;
-  main_workflow_connectome_tck2connectome -> main_workflow_datasink;
   main_workflow_fs_workflow_fs_reconall -> main_workflow_connectome_labelconvert;
+  main_workflow_connectome_tck2connectome -> main_workflow_datasink;
 }

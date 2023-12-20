@@ -6,9 +6,11 @@ from bids.layout import BIDSLayout
 
 convert2bids = False
 run_pipeline = False
-createMatrixes = False
+createMatrixes = True
+createROIfile = False
 QAcheck = False
-bundleSegmentation= True
+bundleSegmentation= False
+ClusterConsensus = False
 
 source_dir = '/mnt/CONHECT_data'
 
@@ -22,11 +24,10 @@ if not os.path.exists(os.path.join(source_dir,'nifti2')) and convert2bids:
 	
 
 ########          group/session selection               #########
-
-data_dir = os.path.join(source_dir,'nifti2','HealthyVolunteers')
+group = 'HealthyVolunteers'
+data_dir = os.path.join(source_dir,'nifti2',group)
 
 layout = BIDSLayout(data_dir)
-
 
 # Select subject and sessions
 
@@ -38,7 +39,7 @@ print('Subjects : ', subject_list)
 print('Sessions : ', session_list)
 print('Aquisitions : ', dirs_list)
 
-subject_list = ['02']
+subject_list = ['01']
 session_list = ['001']
 
 CLI_subject_list = ','.join(subject_list)
@@ -62,6 +63,11 @@ if run_pipeline:
 if createMatrixes:
 	bash_command = f'python 3_MatrixesCreation/MatrixesCreation.py {CLI_subject_list} {CLI_session_list}'
 	subprocess.run(bash_command,shell = True)
+	
+
+if createROIfile:
+	bash_command = f'python 3_MatrixesCreation/createROIfile.py {CLI_subject_list} {CLI_session_list} {group} {source_dir}'
+	subprocess.run(bash_command,shell = True)
 
 #################################################################
 #########                 QA Check                     ##########
@@ -74,7 +80,13 @@ if QAcheck:
 
 
 if bundleSegmentation:
-	bash_command = f'python 4_BundleSegmentation/BundleSegmentation.py {CLI_subject_list} {CLI_session_list}'
+	bash_command = f'python 4_BundleSegmentation/BundleSegmentation.py {CLI_subject_list} {CLI_session_list} {source_dir}'
 	print(bash_command)
 	subprocess.run(bash_command,shell = True)
+
+if ClusterConsensus:
+	bash_command = f'python NetworkAnalysis/ClusterConsensus.py {CLI_subject_list} {CLI_session_list} {source_dir}'
+	print(bash_command)
+	subprocess.run(bash_command,shell = True)
+
 

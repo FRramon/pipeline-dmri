@@ -16,6 +16,8 @@ import numpy as np
 
 subject_raw = sys.argv[1]
 session_raw = sys.argv[2]
+source_dir = sys.argv[3]
+mni_file = source_dir + '/code/MNI_FA_template.nii.gz'
 
 subject_list = subject_raw.split(',')
 ses_list = session_raw.split(',')
@@ -35,7 +37,7 @@ for sub in subject_list:
 
 
 		# Set directories
-		main_workflow_dir = '/mnt/CONHECT_data/pipe_healthy/main_workflow'
+		main_workflow_dir = source_dir + '/pipe_healthy/main_workflow'
 		dwi_dir = os.path.join(main_workflow_dir,'wf_dc',identifier,'mrconvertPA','mapflow')
 		tracto_dir = os.path.join(main_workflow_dir,'wf_tractography',identifier)
 		freesurfer_dir = os.path.join(main_workflow_dir,'fs_workflow',identifier,'fs_reconall',sub,'mri')
@@ -137,7 +139,7 @@ for sub in subject_list:
 		if not os.path.exists(segSubject):
 			os.mkdir(segSubject)
 			print('--- [Node] : Moving bundles masks to subject space')
-			bundles_MNI = os.listdir(os.path.join(output,'bundle_segmentations'))
+			bundles_MNI = os.listdir(os.path.join(outputdir,'bundle_segmentations'))
 			
 			for bundles in bundles_MNI:
 				if verbose: print(f'Moving {bundles} to subject space')
@@ -235,7 +237,7 @@ for sub in subject_list:
 		if ViewTractSegTracts:
 			print('Viewing whole segmentation tractseg')
 			
-			tracts_seg= os.path.join(output,'TOM_trackings')
+			tracts_seg= os.path.join(outputdir,'TOM_trackings')
 			tracts_list = os.listdir(tracts_seg)
 
 			command = f'mrview {bundle_dir}/FA_MNI.nii.gz '
@@ -246,7 +248,7 @@ for sub in subject_list:
 				B = np.random.choice(range(256))
 
 		
-				command_i = f'-tractography.load {tracts_seg}/{tracts} -tractography.geometry pseudotubes -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
+				command_i = f'-mode 3 -imagevisible 0 -tractography.load {tracts_seg}/{tracts} -tractography.geometry pseudotubes -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
 				command += command_i
 
 			#print(command)

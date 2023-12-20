@@ -79,6 +79,7 @@ wf_dc.connect(mrconvertPA,'out_file',mrcatPA,'in_files')
 os.environ["SUBJECTS_DIR"] = data_dir
 fs_reconall = Node(ReconAll(),name = "fs_reconall")
 fs_reconall.inputs.directive = reconall_param
+fs_reconall.n_procs = 3
 #.inputs.subjects_dir = data_dir
 fs_workflow = Workflow(name = 'fs_workflow',base_dir = base_directory)
 fs_workflow.config['execution']['use_caching'] = 'True'
@@ -132,6 +133,7 @@ dwpreproc.inputs.out_file = "preproc.mif"
 #preproc.inputs.out_grad_mrtrix = "grad.b"    # export final gradient table in MRtrix format
 dwpreproc.inputs.eddy_options = eddyoptions_param   # linear second level model and replace outliers
 dwpreproc.inputs.pe_dir = 'PA'
+dwpreproc.n_procs = 2
 
 # Unbias
 biascorrect = Node(mrt.DWIBiasCorrect(),name = 'biascorrect')
@@ -242,9 +244,11 @@ tckgen = Node(mrt.Tractography(),name = 'tckgen')
 tckgen.inputs.algorithm = tckgen_algorithm_param
 tckgen.inputs.select = tckgen_ntracks_param
 tckgen.inputs.backtrack = True
+tckgen.n_procs = 2
 
 tcksift2 = Node(cmp_mrt.FilterTractogram(),name = 'tcksift2')
 tcksift2.inputs.out_file = 'sift_tracks.tck'
+tcksift2.n_procs = 2
 #tcksift2.inputs.out_tracks = 'sift_tracks.tck'
 
 #tcksift2.inputs.out_weights = 'finaltracks.tck'
@@ -303,12 +307,18 @@ labelconvert = MapNode(mrt.LabelConvert(),name = 'labelconvert',iterfield=['in_f
 labelconvert.inputs.in_config = labelconvert_param
 labelconvert.inputs.in_lut = fs_lut_param
 
+transform_parcels = MapNode(mrt.MRTransform(),name = 'transform_parcels',iterfield=['in_files'])
+transform_parcels.inputs.out_file="parcels_coreg.mif"
+
 #tck2connectome –symmetric –zero_diagonal tracks_10mio.tck ${sub_id}_${ses_id}_parcels_destrieux.mif ${sub_id}_${ses_id}_sc_connectivity_matrix.csv –out_assignment ${sub_id}_${ses_id}_sc_assignments.csv -force
 tck2connectome = MapNode(mrt.BuildConnectome(),name = 'tck2connectome',iterfield=['in_parc'])
 tck2connectome.inputs.zero_diagonal = True
+tck2connectome.inputs.out_file = "connectome.csv"
 
 #connectome.connect(tcksift2,'out_tracks',tck2connectome,'in_file')
-connectome.connect(labelconvert,'out_file',tck2connectome,'in_parc')
+
+connectome.connect(labelconvert,'out_file',transform_parcels,'in_files')
+connectome.connect(transform_parcels,'out_file',tck2connectome,'in_parc')
 
 ######################################################################
 ######            Data Sink                           ################
@@ -347,10 +357,9 @@ main_wf.connect(wf_preproc,'biascorrect.out_file',wf_tractography,'dwiresponse.i
 main_wf.connect(wf_preproc,'biascorrect.out_file',wf_tractography,'dwi2fod.in_file')
 main_wf.connect(wf_dc,'sf.anat',wf_tractography,'gen5tt.in_file')
 main_wf.connect(wf_dc,'sf.anat',wf_tractography,'transformT1.in_files')
-
-main_wf.connect(wf_tractography,'tcksift2.out_tracks',connectome,'tck2connectome.in_file')
 main_wf.connect(fs_workflow,'fs_reconall.aparc_aseg',connectome,'labelconvert.in_file')
-
+main_wf.connect(wf_tractography,'transformconvert.out_transform',connectome,'transform_parcels.linear_transform')
+main_wf.connect(wf_tractography,'tcksift2.out_tracks',connectome,'tck2connectome.in_file')
 main_wf.connect(custom_path, 'custom_path', datasink, 'base_directory')
 
 join_DC = Node(Merge(3), name='join_DC')
@@ -378,5 +387,6 @@ main_wf.connect(connectome,'tck2connectome.out_file',datasink,'5_Connectome')
 main_wf.write_graph(graph2use='colored',dotfilename='./mult_11_12.dot')
 wf_tractography.write_graph(graph2use='orig',dotfilename='./graph_tractography.dot')
 wf_dc.write_graph(graph2use='orig',dotfilename='./graph_dc.dot')
+connectome.write_graph(graph2use='orig',dotfilename='./graph_connectome.dot')
 
-main_wf.run(plugin = 'MultiProc')
+main_wf.run(plugin = 'MultiProc',plugin_args = {'n_procs': 8})

@@ -1,0 +1,4 @@
+mrconvert /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_01/Diffusion_MNI.nii.gz /mnt/CONHECT_data/code/dwi2response-tmp-ATFNED/dwi.mif -strides 0,0,0,1 -fslgrad /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_01/MNI_bvec.bvecs /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_01/MNI_bval.bvals
+
+mrconvert: [ERROR] input file "/mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_01/MNI_bvec.bvecs" for option "-fslgrad" not found
+

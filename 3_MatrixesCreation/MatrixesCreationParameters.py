@@ -2,13 +2,13 @@
 ###         Parameters for matrixes creation         ####
 #########################################################
 
-create_smallertck = True
-create_vf = True
-createFAmatrix = True
-createSCmatrix = True
-save_matrix = True
+create_smallertck = False
+create_vf = False
+createFAmatrix = False
+createSCmatrix = False
+save_matrix = False
 
-createMesh = True
+createMesh = False
 viewSCConnectome = True
-viewFAConnectome = True
+viewFAConnectome = False
 viewFA = False
