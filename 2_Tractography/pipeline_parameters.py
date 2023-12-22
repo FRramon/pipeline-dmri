@@ -1,9 +1,9 @@
 
 ### SPECIFY DATA DIRECTORY AND DESIRED OUTPUT DIRECTORY ###
 
-base_directory = "/mnt/CONHECT_data/pipe_healthy"
-data_dir = "/mnt/CONHECT_data/nifti2/HealthyVolunteers"
-out_dir = "/mnt/CONHECT_data/results_test2"
+base_directory = "/mnt/CONHECT_data/pipe_patients"
+data_dir = "/mnt/CONHECT_data/nifti2/Patients"
+out_dir = "/mnt/CONHECT_data/results_patients"
 
 ### PREPROCESSING PARAMETERS ###
 

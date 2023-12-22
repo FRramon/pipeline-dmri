@@ -28,12 +28,26 @@ def louvain_clustering(mat, r):
     labels = model.labels_
     return labels
 
+
+def invert_non_zero_elements(matrix):
+    # Find the non-zero elements
+    non_zero_indices = matrix != 0
+    
+    # Invert the non-zero elements
+    inverted_elements = 1 / matrix[non_zero_indices]
+    
+    # Assign the inverted elements back to the original matrix
+    matrix[non_zero_indices] = inverted_elements
+    
+    return matrix
+
+
 def co_classification_matrix(adjacency_matrix, gamma_min, gamma_max, num_clusterings):
     
     co_class_matrix = np.zeros((adjacency_matrix.shape[0], adjacency_matrix.shape[1]))
 
     for k in range(1, num_clusterings):
-        gamma = (gamma_max - gamma_min) * (k / num_clusterings)
+        gamma = gamma_min + (gamma_max - gamma_min) * (k / num_clusterings)
         print(f'running on k = {k} | gamma = {gamma}')
         labels_k = louvain_clustering(adjacency_matrix, gamma)
 
@@ -78,6 +92,7 @@ def get_co_classification_matrix(adjacency_matrix,gamma_min,gamma_max,num_cluste
     den = scipy.cluster.hierarchy.dendrogram(ClustMap.dendrogram_col.linkage,
                                              labels=df_coclass.index,
                                              color_threshold=0.60)
+    
 
     ########### Extracting clusters from dendrogram ###########
     clusters = get_cluster_classes(den)
@@ -85,6 +100,7 @@ def get_co_classification_matrix(adjacency_matrix,gamma_min,gamma_max,num_cluste
     ########### Assigning cluster labels to each row in the co-classification matrix ###########
     cluster = []
     for i in df_coclass.index:
+        print(i)
         included = False
         for j in clusters.keys():
             if i in clusters[j]:
@@ -97,9 +113,12 @@ def get_co_classification_matrix(adjacency_matrix,gamma_min,gamma_max,num_cluste
     # print(len(clusters['C1']))
     # print(len(clusters['C0']))
     # print(len(clusters['C2']))
+ 
+    print(df_coclass.shape[0])
+    print(cluster)
+
+    print(len(cluster))
     df_coclass["cluster"] = cluster
-
-
     # ########### Saving the co-classification matrix to a CSV file ###########
 
     df_coclass.to_csv('/home/francoisramon/test2.csv')
@@ -165,15 +184,21 @@ def main(source_dir,sub,ses,gamma_min,gamma_max,num_clusterings):
 
     ########### Ensuring symmetry in the connectivity matrix ###########
     Mat = Mat + Mat.T
+    if inverse:
+        Mat = invert_non_zero_elements(Mat)
 
     ClustMap,den,df_coclass = get_co_classification_matrix(Mat,gamma_min,gamma_max,num_clusterings)
+
+    if viewMat:
+        plt.figure()
+        plt.show()
+
 
     df_LUT = createCustomLUT(source_dir,df_coclass)
 
     output_file_path = source_dir + f'/results_test2/sub-{sub}/ses-{ses}/5_Connectome/sub-{sub}_ses-{ses}_customLUT.txt'
     df_LUT.to_csv(output_file_path, sep=' ', index=False,header=None)
     
-
 
 
 if __name__ == '__main__':

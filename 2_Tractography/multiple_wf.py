@@ -79,7 +79,6 @@ wf_dc.connect(mrconvertPA,'out_file',mrcatPA,'in_files')
 os.environ["SUBJECTS_DIR"] = data_dir
 fs_reconall = Node(ReconAll(),name = "fs_reconall")
 fs_reconall.inputs.directive = reconall_param
-fs_reconall.n_procs = 3
 #.inputs.subjects_dir = data_dir
 fs_workflow = Workflow(name = 'fs_workflow',base_dir = base_directory)
 fs_workflow.config['execution']['use_caching'] = 'True'
@@ -133,7 +132,8 @@ dwpreproc.inputs.out_file = "preproc.mif"
 #preproc.inputs.out_grad_mrtrix = "grad.b"    # export final gradient table in MRtrix format
 dwpreproc.inputs.eddy_options = eddyoptions_param   # linear second level model and replace outliers
 dwpreproc.inputs.pe_dir = 'PA'
-dwpreproc.n_procs = 2
+
+
 
 # Unbias
 biascorrect = Node(mrt.DWIBiasCorrect(),name = 'biascorrect')
@@ -244,11 +244,10 @@ tckgen = Node(mrt.Tractography(),name = 'tckgen')
 tckgen.inputs.algorithm = tckgen_algorithm_param
 tckgen.inputs.select = tckgen_ntracks_param
 tckgen.inputs.backtrack = True
-tckgen.n_procs = 2
 
 tcksift2 = Node(cmp_mrt.FilterTractogram(),name = 'tcksift2')
 tcksift2.inputs.out_file = 'sift_tracks.tck'
-tcksift2.n_procs = 2
+
 #tcksift2.inputs.out_tracks = 'sift_tracks.tck'
 
 #tcksift2.inputs.out_weights = 'finaltracks.tck'
@@ -389,4 +388,4 @@ wf_tractography.write_graph(graph2use='orig',dotfilename='./graph_tractography.d
 wf_dc.write_graph(graph2use='orig',dotfilename='./graph_dc.dot')
 connectome.write_graph(graph2use='orig',dotfilename='./graph_connectome.dot')
 
-main_wf.run(plugin = 'MultiProc',plugin_args = {'n_procs': 8})
+main_wf.run(plugin = 'MultiProc')

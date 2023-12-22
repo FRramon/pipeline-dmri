@@ -131,7 +131,7 @@ for sub in subject_list:
 			    plt.savefig(output_file_path)
 
 			    # Show the plot (optional)
-			    plt.show()
+			    #plt.show()
 
 			# Save the first heatmap
 			save_heatmap(df_sc,outlier_threshold_sc, "sc")

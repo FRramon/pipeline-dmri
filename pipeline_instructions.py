@@ -5,11 +5,12 @@ from bids.layout import BIDSLayout
 ######                    Instructions                   #######
 
 convert2bids = False
-run_pipeline = False
+run_pipeline = True
+
 createMatrixes = True
-createROIfile = False
+createROIfile = True
 QAcheck = False
-bundleSegmentation= False
+bundleSegmentation= True
 ClusterConsensus = False
 
 source_dir = '/mnt/CONHECT_data'
@@ -24,7 +25,7 @@ if not os.path.exists(os.path.join(source_dir,'nifti2')) and convert2bids:
 	
 
 ########          group/session selection               #########
-group = 'HealthyVolunteers'
+group = 'Patients'
 data_dir = os.path.join(source_dir,'nifti2',group)
 
 layout = BIDSLayout(data_dir)
@@ -39,8 +40,8 @@ print('Subjects : ', subject_list)
 print('Sessions : ', session_list)
 print('Aquisitions : ', dirs_list)
 
-subject_list = ['01']
-session_list = ['001']
+#subject_list = ['01,02,03']
+#session_list = ['001']
 
 CLI_subject_list = ','.join(subject_list)
 CLI_session_list = ','.join(session_list)
@@ -59,6 +60,7 @@ if run_pipeline:
 #################################################################
 #########        Create the connectivity matrixes      ##########
 #################################################################
+
 
 if createMatrixes:
 	bash_command = f'python 3_MatrixesCreation/MatrixesCreation.py {CLI_subject_list} {CLI_session_list}'
@@ -88,5 +90,4 @@ if ClusterConsensus:
 	bash_command = f'python NetworkAnalysis/ClusterConsensus.py {CLI_subject_list} {CLI_session_list} {source_dir}'
 	print(bash_command)
 	subprocess.run(bash_command,shell = True)
-
 

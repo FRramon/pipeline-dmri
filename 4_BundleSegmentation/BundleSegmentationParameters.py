@@ -3,6 +3,6 @@
 #########################################################
 
 verbose = True
-View5kTracts = True
+View5kTracts = False
 ViewAllTracts = False
 ViewTractSegTracts = False
