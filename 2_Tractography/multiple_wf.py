@@ -21,6 +21,14 @@ logging.update_logging(config)
 
 subject_raw = sys.argv[1]
 session_raw = sys.argv[2]
+pipe_name = sys.argv[3]
+result_name = sys.argv[4]
+
+base_directory = "/mnt/CONHECT_data/" + pipe_name
+data_dir = "/mnt/CONHECT_data/nifti2/Patients"
+out_dir = "/mnt/CONHECT_data/" + result_name
+
+tckgen_ntracks_param = int(sys.argv[5])
 
 subject_list = subject_raw.split(',')
 ses_list = session_raw.split(',')
@@ -323,16 +331,15 @@ connectome.connect(transform_parcels,'out_file',tck2connectome,'in_parc')
 ######            Data Sink                           ################
 ######################################################################
 
-def custom_output_path(sub_id, ses_id):
+def custom_output_path(out_dir,sub_id, ses_id):
     import os
-    from pipeline_parameters import out_dir
     return os.path.join(out_dir, f"sub-{sub_id}/ses-{ses_id}")
 
 datasink = Node(DataSink(), name="datasink")
 datasink.inputs.parameterization = False
 datasink.inputs.base_directory = out_dir  
 
-custom_path = Node(Function(input_names=["sub_id", "ses_id"],
+custom_path = Node(Function(input_names=["out_dir","sub_id", "ses_id"],
                             output_names=["custom_path"],
                             function=custom_output_path),
                    name="custom_path")
@@ -345,8 +352,8 @@ main_wf = Workflow(name = "main_workflow",base_dir = base_directory)
 main_wf.config['execution']['use_caching'] = 'True'
 main_wf.config['execution']['hash_method'] = 'content'
 
-main_wf.connect(wf_dc,'infosource.subject_id',custom_path,'sub_id')
-main_wf.connect(wf_dc,'infosource.ses_id',custom_path,'ses_id')
+# main_wf.connect(wf_dc,'infosource.subject_id',custom_path,'sub_id')
+# main_wf.connect(wf_dc,'infosource.ses_id',custom_path,'ses_id')
 
 main_wf.connect(wf_dc,'mrcatPA.out_file',wf_preproc,'denoise.in_file')
 main_wf.connect(wf_dc,'mrconvertAP.out_file',wf_preproc,'b0AP_extract.in_file')
@@ -359,29 +366,29 @@ main_wf.connect(wf_dc,'sf.anat',wf_tractography,'transformT1.in_files')
 main_wf.connect(fs_workflow,'fs_reconall.aparc_aseg',connectome,'labelconvert.in_file')
 main_wf.connect(wf_tractography,'transformconvert.out_transform',connectome,'transform_parcels.linear_transform')
 main_wf.connect(wf_tractography,'tcksift2.out_tracks',connectome,'tck2connectome.in_file')
-main_wf.connect(custom_path, 'custom_path', datasink, 'base_directory')
+# main_wf.connect(custom_path, 'custom_path', datasink, 'base_directory')
 
-join_DC = Node(Merge(3), name='join_DC')
-main_wf.connect(wf_dc, 'mrcatPA.out_file', join_DC, 'in1')
-main_wf.connect(wf_dc, 'mrconvertAP.out_file', join_DC, 'in2')
-main_wf.connect(wf_dc,'sf.anat',join_DC,'in3')
-main_wf.connect(join_DC,'out',datasink,'1_DataConversion')
+# join_DC = Node(Merge(3), name='join_DC')
+# main_wf.connect(wf_dc, 'mrcatPA.out_file', join_DC, 'in1')
+# main_wf.connect(wf_dc, 'mrconvertAP.out_file', join_DC, 'in2')
+# main_wf.connect(wf_dc,'sf.anat',join_DC,'in3')
+# main_wf.connect(join_DC,'out',datasink,'1_DataConversion')
 
-main_wf.connect(wf_preproc,'biascorrect.out_file',datasink,'2_Preprocessing')
+# main_wf.connect(wf_preproc,'biascorrect.out_file',datasink,'2_Preprocessing')
 
-join_FOD = Node(Merge(4), name='join_FOD')
-main_wf.connect(wf_tractography,'dwiresponse.wm_file',join_FOD,'in1')
-main_wf.connect(wf_tractography,'dwi2fod.wm_odf',join_FOD,'in2')
-main_wf.connect(wf_tractography,'transform5tt.out_file',join_FOD,'in3')
-main_wf.connect(wf_tractography,'transformT1.out_file',join_FOD,'in4')
-main_wf.connect(join_FOD,'out',datasink,'3_FODestimation')
+# join_FOD = Node(Merge(4), name='join_FOD')
+# main_wf.connect(wf_tractography,'dwiresponse.wm_file',join_FOD,'in1')
+# main_wf.connect(wf_tractography,'dwi2fod.wm_odf',join_FOD,'in2')
+# main_wf.connect(wf_tractography,'transform5tt.out_file',join_FOD,'in3')
+# main_wf.connect(wf_tractography,'transformT1.out_file',join_FOD,'in4')
+# main_wf.connect(join_FOD,'out',datasink,'3_FODestimation')
 
-join_Tracto = Node(Merge(2), name='join_Tracto')
-main_wf.connect(wf_tractography,'tckgen.out_file',join_Tracto,'in1')
-main_wf.connect(wf_tractography,'tcksift2.out_tracks',join_Tracto,'in2')
-main_wf.connect(join_Tracto,'out',datasink,'4_Tractography')
+# join_Tracto = Node(Merge(2), name='join_Tracto')
+# main_wf.connect(wf_tractography,'tckgen.out_file',join_Tracto,'in1')
+# main_wf.connect(wf_tractography,'tcksift2.out_tracks',join_Tracto,'in2')
+# main_wf.connect(join_Tracto,'out',datasink,'4_Tractography')
 
-main_wf.connect(connectome,'tck2connectome.out_file',datasink,'5_Connectome')
+# main_wf.connect(connectome,'tck2connectome.out_file',datasink,'5_Connectome')
 
 main_wf.write_graph(graph2use='colored',dotfilename='./mult_11_12.dot')
 wf_tractography.write_graph(graph2use='orig',dotfilename='./graph_tractography.dot')

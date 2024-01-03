@@ -1,7 +1,0 @@
-strict digraph  {
-"labelconvert (mrtrix3)";
-"transform_parcels (mrtrix3)";
-"tck2connectome (mrtrix3)";
-"labelconvert (mrtrix3)" -> "transform_parcels (mrtrix3)";
-"transform_parcels (mrtrix3)" -> "tck2connectome (mrtrix3)";
-}

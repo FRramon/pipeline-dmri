@@ -7,13 +7,25 @@ from bids.layout import BIDSLayout
 convert2bids = False
 run_pipeline = True
 
-createMatrixes = True
-createROIfile = True
+createMatrixes = False
+createROIfile = False
 QAcheck = False
-bundleSegmentation= True
+bundleSegmentation= False
 ClusterConsensus = False
 
 source_dir = '/mnt/CONHECT_data'
+
+pipe_name10 = 'pipe_patients_10'
+result_name10 = 'results_patients_10'
+ntracks10 = 10000000
+
+pipe_name20 = 'pipe_patients_20'
+result_name20 = 'results_patients_20'
+ntracks20 = 20000000
+
+pipe_name30 = 'pipe_patients_30'
+result_name30 = 'results_patients_30'
+ntracks30 = 30000000
 
 #################################################################
 #########         BIDS Formatting & Correct AP/PA       #########
@@ -40,8 +52,12 @@ print('Subjects : ', subject_list)
 print('Sessions : ', session_list)
 print('Aquisitions : ', dirs_list)
 
-#subject_list = ['01,02,03']
-#session_list = ['001']
+
+### Ajouter une fonction qui vient chercher les numéros des patients qui ont une session 001,002 ou 003 selon ce qui est voulu
+
+subject_list = ['01,02,03,04,05,06,07,08,09']#12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45']
+session_list = ['001']
+
 
 CLI_subject_list = ','.join(subject_list)
 CLI_session_list = ','.join(session_list)
@@ -54,8 +70,13 @@ CLI_session_list = ','.join(session_list)
 #from pipeline_parameters import * ici
 
 if run_pipeline:
-	command_pipeline = f'python 2_Tractography/multiple_wf.py {CLI_subject_list} {CLI_session_list}'
-	subprocess.run(command_pipeline,shell = True)
+	command_pipeline10 = f'python 2_Tractography/multiple_wf.py {CLI_subject_list} {CLI_session_list} {pipe_name10} {result_name10} {ntracks10}'
+	subprocess.run(command_pipeline10,shell = True)
+	command_pipeline20 = f'python 2_Tractography/multiple_wf.py {CLI_subject_list} {CLI_session_list} {pipe_name20} {result_name20} {ntracks20}'
+	subprocess.run(command_pipeline20,shell = True)
+	command_pipeline30 = f'python 2_Tractography/multiple_wf.py {CLI_subject_list} {CLI_session_list} {pipe_name30} {result_name30} {ntracks30} '
+	subprocess.run(command_pipeline30,shell = True)
+
 
 #################################################################
 #########        Create the connectivity matrixes      ##########

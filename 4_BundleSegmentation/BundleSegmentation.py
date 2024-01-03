@@ -37,7 +37,7 @@ for sub in subject_list:
 
 
 		# Set directories
-		main_workflow_dir = source_dir + '/pipe_healthy/main_workflow'
+		main_workflow_dir = source_dir + '/pipe_patients/main_workflow'
 		dwipreproc_dir = os.path.join(main_workflow_dir,'preproc',identifier,'biascorrect')
 		print(dwipreproc_dir)
 		tracto_dir = os.path.join(main_workflow_dir,'wf_tractography',identifier)

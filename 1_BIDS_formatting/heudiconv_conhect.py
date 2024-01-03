@@ -9,11 +9,11 @@ import json
 
 
 from anonymize_conhect import *
-from heudiconv_paramterers import *
+from heudiconv_parameters import *
 
 # Check if the correct number of command-line arguments is provided
 if len(sys.argv) != 2:
-    print("Usage: python generic_heudiconv_conhect.py <base_dir> ")
+    print("Usage: python heudiconv_conhect.py <base_dir> ")
     sys.exit(1)
 
 base_dir = sys.argv[1]
@@ -33,6 +33,7 @@ source_data_dir = os.path.join(base_dir,"data")
 
 anonymize_conhect(source_data_dir)
 
+correct_names(source_data_dir)
 ###########################################
 # Before this step
 # Make sure that folder convertall and rawdata exists
@@ -64,14 +65,14 @@ anonymize_conhect(source_data_dir)
 
 
 base = base_dir
-base_output = os.path.join(base_dir,"nifti2")
-codes_path = os.path.join(base_dir,"code","1_bidsformatting")
+base_output = os.path.join(base_dir,"nifti3")
+codes_path = os.path.join(base_dir,"code","1_BIDS_formatting")
 
 heuristic_file = os.path.join(codes_path, heuristic_filename)
 heuristic = heuristic_file  # convertall or heuristic_file
 
-groups = os.listdir(source_data_dir)
-groups = ['Patients']
+#groups = os.listdir(source_data_dir)
+#groups = ['Patients']
 ####################################################
 #                   Step 2                         #
 ####################################################
@@ -102,9 +103,9 @@ for g in groups:
             output = os.path.join(base_output,g)
             if DOheudiconv:
                 print(f'    START: heudiconv')
-                dicom_dir_pattern = "/base/data/HealthyVolunteers/sub-{subject}/ses-{session}/01-RawData/*/*"
+                dicom_dir_pattern = "/base/data/Patients/sub-{subject}/ses-{session}/01-RawData/*/*"
                # dicom_dir_pattern = os.path.join(base,'test', 'sub-{subject}', 'ses-{session}','01-RawData','*', '*')
-                bashCommand = f"docker run --rm -it -v {base}:/base -v {output}:/output nipy/heudiconv:latest -d {dicom_dir_pattern} -f base/code/1_bidsformatting/heuristic_conhect.py -s {subject_id} -ss {session_id} -c dcm2niix -o /output -b --overwrite"
+                bashCommand = f"docker run --rm -it -v {base}:/base -v {output}:/output nipy/heudiconv:latest -d {dicom_dir_pattern} -f base/code/1_BIDS_formatting/heuristic_conhect.py -s {subject_id} -ss {session_id} -c dcm2niix -o /output -b --overwrite"
                 print(bashCommand)
                 if not dryrun_heudiconv:
                     process = subprocess.run(bashCommand,shell = True)
