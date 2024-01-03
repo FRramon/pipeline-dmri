@@ -9,7 +9,7 @@ import numpy as np
 import nibabel as nib
 import pandas as pd
 from copy import deepcopy
-
+from matplotlib.colors import ListedColormap
 
 
 data_dir = '/mnt/CONHECT_data/pipe_upto_21dec/main_workflow/bundle_segmentation/_ses_id_001_subject_id_02'
@@ -62,12 +62,12 @@ def gen_sphere(x0,y0,z0,radius):
 	            deb = radius - ((x0-x)**2 + (y0-y)**2 + (z0-z)**2)**0.5
 	            if (deb)>=0: AA[x,y,z] = 1
 
-	np.save('/mnt/CONHECT_data/code/test_sphere/sphere_mask.npy',AA)
+	np.save('/mnt/CONHECT_data/code/4_BundleSegmentation/sphere_mask.npy',AA)
 
 	nifti_img = nib.Nifti1Image(AA, affine=np.eye(4))
 
 	# Save the NIfTI image to a file (replace 'output.nii.gz' with your desired filename)
-	nib.save(nifti_img, '/mnt/CONHECT_data/code/test_sphere/sphere_mask.nii.gz')
+	nib.save(nifti_img, '/mnt/CONHECT_data/code/4_BundleSegmentation/sphere_mask.nii.gz')
 
 	return AA
 
@@ -116,8 +116,8 @@ def main_merge_bundles(bundle_dir,output_path,x0,y0,z0,radius):
 	sphere = gen_sphere(x0,y0,z0,radius)
 
 	#### Plot intersection img + sphere | check sphere position
-	command = f'mrview {output_path} -voxel {x0},{y0},{z0} -overlay.load /mnt/CONHECT_data/code/test_sphere/sphere_mask.nii.gz -mode 2'
-	subprocess.run(command, shell = True)
+	# command = f'mrview {output_path} -voxel {x0},{y0},{z0} -overlay.load /mnt/CONHECT_data/code/4_BundleSegmentation/sphere_mask.nii.gz -mode 2'
+	# subprocess.run(command, shell = True)
 
 
 	#### Mask all_masks with sphere and plot the pie charts.
@@ -126,8 +126,6 @@ def main_merge_bundles(bundle_dir,output_path,x0,y0,z0,radius):
 
 	L = []
 	for k in range(masked_trunc.shape[3]):
-	    print(np.amax(masked_trunc[:,:,:,k]))
-	    print(np.sum(masked_trunc[:,:,:,k]))
 	    L.append(np.sum(masked_trunc[:,:,:,k]))
 
 	presentBundles = [x for x in L if x != 0]
@@ -142,13 +140,41 @@ def main_merge_bundles(bundle_dir,output_path,x0,y0,z0,radius):
 	labels = equi_chart['label']
 	sizes = equi_chart['in']
 
-	fig, ax = plt.subplots()
-	ax.pie(sizes, labels=labels)
-	plt.title('Present Bundles in the Sphere Mask', fontsize=16)
+	### Axe gauche droite : x, axe avant arriere : y, axe vertical z
+
+	slice_ax = summed_mask[:,:,z0]
+	slice_cor = summed_mask[:,y0,:]
+	slice_sag = summed_mask[x0,:,:]
+	sphere_ax = sphere[:,:,z0]
+	sphere_cor = sphere[:,y0,:]
+	sphere_sag = sphere[x0,:,:]
+
+	fig, axs = plt.subplots(2, 2, figsize=(20, 10))
+
+	# Plot the overlaid slice in the first subplot
+	axs[0,0].imshow(slice_ax,cmap = 'gray')
+	axs[0,0].imshow(sphere_ax,alpha = 0.5*(sphere_ax>0),cmap = 'Blues')
+	axs[0,0].set_title('Overlay of axial Slice')
+	axs[0,0].set_axis_off()
+
+	axs[0,1].pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+	axs[0,1].set_title('Bundle composition inside the sphere')
+
+	axs[1,0].imshow(slice_cor,cmap = 'gray')
+	axs[1,0].imshow(sphere_cor,alpha = 0.5*(sphere_cor>0),cmap = 'Blues')
+	axs[1,0].set_title('Overlay of coronal Slice')
+	axs[1,0].set_axis_off()
+
+	axs[1,1].imshow(slice_sag,cmap = 'gray')
+	axs[1,1].imshow(sphere_sag,alpha = 0.5*(sphere_sag>0),cmap = 'Blues')
+	axs[1,1].set_title('Overlay of sagittal Slice')
+	axs[1,1].set_axis_off()
+
+
 	plt.show()
 
 	#### Plot intersection img + sphere | check sphere position
-	command = f'mrview {output_path} -voxel {x0},{y0},{z0} -overlay.load /mnt/CONHECT_data/code/test_sphere/sphere_mask.nii.gz -mode 2'
+	command = f'mrview {output_path} -voxel {x0},{y0},{z0} -overlay.load /mnt/CONHECT_data/code/4_BundleSegmentation/sphere_mask.nii.gz -mode 2'
 	subprocess.run(command, shell = True)
 
 
@@ -157,4 +183,5 @@ bundle_dir = data_dir + '/tractseg_output/bundle_segmentations'
 output_path = f"{data_dir}/intersection_test.nii.gz"
 
 
-main_merge_bundles(bundle_dir,output_path,94,107,58,5)
+
+main_merge_bundles(bundle_dir,output_path,56,132,73,5)
