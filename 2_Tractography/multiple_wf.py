@@ -19,16 +19,17 @@ logging.update_logging(config)
 ###########      Data Conversion       ###################
 ##########################################################
 
-subject_raw = sys.argv[1]
-session_raw = sys.argv[2]
-pipe_name = sys.argv[3]
-result_name = sys.argv[4]
+data_dir = sys.argv[1]
+subject_raw = sys.argv[2]
+session_raw = sys.argv[3]
+base_directory = sys.argv[4]
+out_dir = sys.argv[5]
 
-base_directory = "/mnt/CONHECT_data/" + pipe_name
-data_dir = "/mnt/CONHECT_data/nifti2/Patients"
-out_dir = "/mnt/CONHECT_data/" + result_name
+print(data_dir)
+print(base_directory)
+print(out_dir)
 
-tckgen_ntracks_param = int(sys.argv[5])
+tckgen_ntracks_param = int(sys.argv[6])
 
 subject_list = subject_raw.split(',')
 ses_list = session_raw.split(',')

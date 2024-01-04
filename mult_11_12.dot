@@ -1,0 +1,125 @@
+digraph main_workflow{
+  label="main_workflow";
+  subgraph cluster_main_workflow_wf_dc {
+      edge [color="#0000FF"];
+      style=filled;
+      fillcolor="#B4B4FF";
+      label="wf_dc";
+    main_workflow_wf_dc_infosource[label="infosource (utility)", shape=box3d,style=filled, color=black, colorscheme=greys7 fillcolor=2];
+    main_workflow_wf_dc_sf[label="sf (io)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_dc_mrconvertPA[label="mrconvertPA (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_dc_mrconvertAP[label="mrconvertAP (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_dc_mrcatPA[label="mrcatPA (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_dc_infosource -> main_workflow_wf_dc_sf;
+    main_workflow_wf_dc_infosource -> main_workflow_wf_dc_sf;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertPA;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertPA;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertPA;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertAP;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertAP;
+    main_workflow_wf_dc_sf -> main_workflow_wf_dc_mrconvertAP;
+    main_workflow_wf_dc_mrconvertPA -> main_workflow_wf_dc_mrcatPA;
+  }
+  subgraph cluster_main_workflow_fs_workflow {
+      edge [color="#0000FF"];
+      style=filled;
+      fillcolor="#B4B4FF";
+      label="fs_workflow";
+    main_workflow_wf_dc_infosource[label="infosource (utility)", shape=box3d,style=filled, color=black, colorscheme=greys7 fillcolor=2];
+    main_workflow_wf_dc_sf[label="sf (io)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_fs_workflow_fs_reconall[label="fs_reconall (freesurfer)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_dc_infosource -> main_workflow_fs_workflow_fs_reconall;
+    main_workflow_wf_dc_sf -> main_workflow_fs_workflow_fs_reconall;
+  }
+  subgraph cluster_main_workflow_preproc {
+      edge [color="#0000FF"];
+      style=filled;
+      fillcolor="#B4B4FF";
+      label="preproc";
+    main_workflow_preproc_denoise[label="denoise (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_b0AP_extract[label="b0AP_extract (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_unring[label="unring (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_b0PA_extract[label="b0PA_extract (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_avg_b0PA[label="avg_b0PA (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_merger[label="merger (utility)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_mrcatb0[label="mrcatb0 (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_dwpreproc[label="dwpreproc (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_biascorrect[label="biascorrect (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_preproc_denoise -> main_workflow_preproc_unring;
+    main_workflow_preproc_b0AP_extract -> main_workflow_preproc_merger;
+    main_workflow_preproc_unring -> main_workflow_preproc_b0PA_extract;
+    main_workflow_preproc_unring -> main_workflow_preproc_dwpreproc;
+    main_workflow_preproc_b0PA_extract -> main_workflow_preproc_avg_b0PA;
+    main_workflow_preproc_avg_b0PA -> main_workflow_preproc_merger;
+    main_workflow_preproc_merger -> main_workflow_preproc_mrcatb0;
+    main_workflow_preproc_mrcatb0 -> main_workflow_preproc_dwpreproc;
+    main_workflow_preproc_dwpreproc -> main_workflow_preproc_biascorrect;
+  }
+  subgraph cluster_main_workflow_wf_tractography {
+      edge [color="#0000FF"];
+      style=filled;
+      fillcolor="#B4B4FF";
+      label="wf_tractography";
+    main_workflow_wf_tractography_b0_extract[label="b0_extract (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_gen5tt[label="gen5tt (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_dwiresponse[label="dwiresponse (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_brainmask[label="brainmask (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_avg_b0[label="avg_b0 (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_convert5tt2nii[label="convert5tt2nii (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_dwi2fod[label="dwi2fod (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_convertb02nii[label="convertb02nii (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_fslroi[label="fslroi (fsl)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_flirt[label="flirt (fsl)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_transformconvert[label="transformconvert (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_transform5tt[label="transform5tt (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_transformT1[label="transformT1 (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_gmwmi[label="gmwmi (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_tckgen[label="tckgen (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_tcksift2[label="tcksift2 (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_wf_tractography_b0_extract -> main_workflow_wf_tractography_avg_b0;
+    main_workflow_wf_tractography_gen5tt -> main_workflow_wf_tractography_convert5tt2nii;
+    main_workflow_wf_tractography_gen5tt -> main_workflow_wf_tractography_transform5tt;
+    main_workflow_wf_tractography_dwiresponse -> main_workflow_wf_tractography_dwi2fod;
+    main_workflow_wf_tractography_dwiresponse -> main_workflow_wf_tractography_dwi2fod;
+    main_workflow_wf_tractography_dwiresponse -> main_workflow_wf_tractography_dwi2fod;
+    main_workflow_wf_tractography_brainmask -> main_workflow_wf_tractography_dwi2fod;
+    main_workflow_wf_tractography_avg_b0 -> main_workflow_wf_tractography_convertb02nii;
+    main_workflow_wf_tractography_convert5tt2nii -> main_workflow_wf_tractography_fslroi;
+    main_workflow_wf_tractography_convert5tt2nii -> main_workflow_wf_tractography_transformconvert;
+    main_workflow_wf_tractography_dwi2fod -> main_workflow_wf_tractography_tckgen;
+    main_workflow_wf_tractography_dwi2fod -> main_workflow_wf_tractography_tcksift2;
+    main_workflow_wf_tractography_convertb02nii -> main_workflow_wf_tractography_flirt;
+    main_workflow_wf_tractography_convertb02nii -> main_workflow_wf_tractography_transformconvert;
+    main_workflow_wf_tractography_fslroi -> main_workflow_wf_tractography_flirt;
+    main_workflow_wf_tractography_flirt -> main_workflow_wf_tractography_transformconvert;
+    main_workflow_wf_tractography_transformconvert -> main_workflow_wf_tractography_transform5tt;
+    main_workflow_wf_tractography_transformconvert -> main_workflow_wf_tractography_transformT1;
+    main_workflow_wf_tractography_transform5tt -> main_workflow_wf_tractography_gmwmi;
+    main_workflow_wf_tractography_transform5tt -> main_workflow_wf_tractography_tckgen;
+    main_workflow_wf_tractography_transform5tt -> main_workflow_wf_tractography_tcksift2;
+    main_workflow_wf_tractography_gmwmi -> main_workflow_wf_tractography_tckgen;
+    main_workflow_wf_tractography_tckgen -> main_workflow_wf_tractography_tcksift2;
+  }
+  subgraph cluster_main_workflow_connectome {
+      edge [color="#0000FF"];
+      style=filled;
+      fillcolor="#B4B4FF";
+      label="connectome";
+    main_workflow_connectome_labelconvert[label="labelconvert (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_connectome_transform_parcels[label="transform_parcels (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_connectome_tck2connectome[label="tck2connectome (mrtrix3)", style=filled, fillcolor="#E6E6FF"];
+    main_workflow_connectome_labelconvert -> main_workflow_connectome_transform_parcels;
+    main_workflow_connectome_transform_parcels -> main_workflow_connectome_tck2connectome;
+  }
+  main_workflow_wf_dc_mrcatPA -> main_workflow_preproc_denoise;
+  main_workflow_wf_dc_mrconvertAP -> main_workflow_preproc_b0AP_extract;
+  main_workflow_wf_dc_sf -> main_workflow_wf_tractography_gen5tt;
+  main_workflow_wf_dc_sf -> main_workflow_wf_tractography_transformT1;
+  main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_brainmask;
+  main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_b0_extract;
+  main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_dwiresponse;
+  main_workflow_preproc_biascorrect -> main_workflow_wf_tractography_dwi2fod;
+  main_workflow_wf_tractography_transformconvert -> main_workflow_connectome_transform_parcels;
+  main_workflow_wf_tractography_tcksift2 -> main_workflow_connectome_tck2connectome;
+  main_workflow_fs_workflow_fs_reconall -> main_workflow_connectome_labelconvert;
+}

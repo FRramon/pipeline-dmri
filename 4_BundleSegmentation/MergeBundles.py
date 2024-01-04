@@ -152,25 +152,29 @@ def main_merge_bundles(bundle_dir,output_path,x0,y0,z0,radius):
 	fig, axs = plt.subplots(2, 2, figsize=(20, 10))
 
 	# Plot the overlaid slice in the first subplot
-	axs[0,0].imshow(slice_ax,cmap = 'gray')
-	axs[0,0].imshow(sphere_ax,alpha = 0.5*(sphere_ax>0),cmap = 'Blues')
+	axs[0,0].imshow(np.rot90(slice_ax),cmap = 'gray')
+	axs[0,0].imshow(np.rot90(sphere_ax),alpha = 0.9*(np.rot90(sphere_ax)>0),cmap = 'hot')
 	axs[0,0].set_title('Overlay of axial Slice')
+	axs[0,0].invert_xaxis()
 	axs[0,0].set_axis_off()
 
 	axs[0,1].pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
 	axs[0,1].set_title('Bundle composition inside the sphere')
 
-	axs[1,0].imshow(slice_cor,cmap = 'gray')
-	axs[1,0].imshow(sphere_cor,alpha = 0.5*(sphere_cor>0),cmap = 'Blues')
+	axs[1,0].imshow(np.rot90(slice_cor),cmap = 'gray')
+	axs[1,0].imshow(np.rot90(sphere_cor),alpha = 0.9*(np.rot90(sphere_cor)>0),cmap = 'hot')
 	axs[1,0].set_title('Overlay of coronal Slice')
+	axs[1,0].invert_xaxis()
 	axs[1,0].set_axis_off()
-
-	axs[1,1].imshow(slice_sag,cmap = 'gray')
-	axs[1,1].imshow(sphere_sag,alpha = 0.5*(sphere_sag>0),cmap = 'Blues')
+	
+	axs[1,1].imshow(np.rot90(slice_sag),cmap = 'gray')
+	axs[1,1].imshow(np.rot90(sphere_sag),alpha = 0.9*(np.rot90(sphere_sag)>0),cmap = 'hot')
 	axs[1,1].set_title('Overlay of sagittal Slice')
+	axs[1,1].invert_xaxis()
 	axs[1,1].set_axis_off()
 
 
+	plt.tight_layout()
 	plt.show()
 
 	#### Plot intersection img + sphere | check sphere position
@@ -184,4 +188,4 @@ output_path = f"{data_dir}/intersection_test.nii.gz"
 
 
 
-main_merge_bundles(bundle_dir,output_path,56,132,73,5)
+main_merge_bundles(bundle_dir,output_path,84,127,48,5)
