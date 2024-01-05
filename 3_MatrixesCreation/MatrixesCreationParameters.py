@@ -6,9 +6,9 @@ create_smallertck = True
 create_vf = True
 createFAmatrix = True
 createSCmatrix = True
-save_matrix = True
+save_matrix = False
 
 createMesh = True
-viewSCConnectome = True
-viewFAConnectome = True
+viewSCConnectome = False
+viewFAConnectome = False
 viewFA = False

@@ -1,9 +1,6 @@
 
 ### SPECIFY DATA DIRECTORY AND DESIRED OUTPUT DIRECTORY ###
 
-base_directory = "/mnt/CONHECT_data/pipe_healthy"
-data_dir = "/mnt/CONHECT_data/nifti2/HealthyVolunteers"
-out_dir = "/mnt/CONHECT_data/results_test2"
 
 ### PREPROCESSING PARAMETERS ###
 
@@ -34,7 +31,7 @@ flirt_dof_param = 6
 #Tractography algorithm, base is 'iFOD2' (probabilistic), and deterministic is 'DTI'
 tckgen_algorithm_param = 'iFOD2'
 # Recommended ntracks is 10 000 000 for the number of streamlines generated. SIFT will filter afterward
-tckgen_ntracks_param = 10000000
+#tckgen_ntracks_param = 30000000
 
 #### BUILD CONNECTOME ####
 

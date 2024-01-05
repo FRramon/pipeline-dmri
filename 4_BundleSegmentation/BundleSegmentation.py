@@ -16,6 +16,8 @@ import numpy as np
 
 subject_raw = sys.argv[1]
 session_raw = sys.argv[2]
+source_dir = sys.argv[3]
+mni_file = source_dir + '/code/MNI_FA_template.nii.gz'
 
 subject_list = subject_raw.split(',')
 ses_list = session_raw.split(',')
@@ -35,10 +37,12 @@ for sub in subject_list:
 
 
 		# Set directories
-		main_workflow_dir = '/mnt/CONHECT_data/pipe_healthy/main_workflow'
-		dwi_dir = os.path.join(main_workflow_dir,'wf_dc',identifier,'mrconvertPA','mapflow')
+		main_workflow_dir = source_dir + '/pipe_patients/main_workflow'
+		dwipreproc_dir = os.path.join(main_workflow_dir,'preproc',identifier,'biascorrect')
+		print(dwipreproc_dir)
 		tracto_dir = os.path.join(main_workflow_dir,'wf_tractography',identifier)
 		freesurfer_dir = os.path.join(main_workflow_dir,'fs_workflow',identifier,'fs_reconall',sub,'mri')
+		connectome_dir = os.path.join(main_workflow_dir,'connectome',identifier)
 
 		raw_dir = os.path.join(main_workflow_dir,'bundle_segmentation')
 		if not os.path.exists(raw_dir):
@@ -47,15 +51,37 @@ for sub in subject_list:
 		bundle_dir = os.path.join(raw_dir,identifier)
 		if not os.path.exists(bundle_dir):
 			os.mkdir(bundle_dir)
+		print(bundle_dir)
+		# dwimif = bundle_dir + '/DWI.mif'
+		# if not os.path.isfile(dwimif):
+		# 	print('--- [Node] : Concatenating DWIs')
+		# 	command_cat = f'dwicat {dwi_dir}/_mrconvertPA0/dwi.mif {dwi_dir}/_mrconvertPA1/dwi.mif {dwi_dir}/_mrconvertPA2/dwi.mif {bundle_dir}/DWI.mif -force'
+		# 	subprocess.run(command_cat, shell = True)
+		# elif verbose == True: 
+		# 	print('--- [Node] : DWI concatenation already done')
+		
+		# dwinii = bundle_dir + '/DWI.nii.gz'
+		# if not os.path.isfile(dwinii):
+		# 	print('--- [Node] : Convert dwi to nifti')
+		# 	command_convert_dwi = f'mrconvert {bundle_dir}/DWI.mif {bundle_dir}/DWI.nii.gz -export_grad_fsl {bundle_dir}/bvec.bvecs {bundle_dir}/bval.bvals -force'
+		# 	subprocess.run(command_convert_dwi, shell = True)
+		# elif verbose == True: 
+		# 	print('--- [Node] : DWI conversion from mif to nifti already done')
+		
+
+		
+		#####################
+		### Attention mettre les données préprocessées dans le pipeline
+		### Copy dwi biascorrect to bundle dir
 
 		dwimif = bundle_dir + '/DWI.mif'
 		if not os.path.isfile(dwimif):
-			print('--- [Node] : Concatenating DWIs')
-			command_cat = f'dwicat {dwi_dir}/_mrconvertPA0/dwi.mif {dwi_dir}/_mrconvertPA1/dwi.mif {dwi_dir}/_mrconvertPA2/dwi.mif {bundle_dir}/DWI.mif -force'
+			print('--- [Node] : copying DWIs')
+			command_cat = f'cp {dwipreproc_dir}/biascorrect.mif {bundle_dir}/DWI.mif'
 			subprocess.run(command_cat, shell = True)
 		elif verbose == True: 
-			print('--- [Node] : DWI concatenation already done')
-		
+			print('--- [Node] : DWI copying already done')
+
 		dwinii = bundle_dir + '/DWI.nii.gz'
 		if not os.path.isfile(dwinii):
 			print('--- [Node] : Convert dwi to nifti')
@@ -63,7 +89,7 @@ for sub in subject_list:
 			subprocess.run(command_convert_dwi, shell = True)
 		elif verbose == True: 
 			print('--- [Node] : DWI conversion from mif to nifti already done')
-		
+
 		masknii = bundle_dir + '/brainmask.nii.gz'
 		if not os.path.isfile(masknii):
 			print('--- [Node] : Convert Mask to nifti')
@@ -117,12 +143,38 @@ for sub in subject_list:
 			print('apply TractSeg')
 			command = f'TractSeg -i {bundle_dir}/Diffusion_MNI.nii.gz -o {bundle_dir}/tractseg_output --output_type tract_segmentation --raw_diffusion_input --bvals {bundle_dir}/MNI_bval.bvals --bvecs {bundle_dir}/MNI_bvec.bvecs --csd_type csd_msmt --super_resolution'
 			subprocess.run(command,shell = True)
-
 			# command_rm = f'rm {segdir}/.tck'
 			# subprocess.run(command_rm,shell = True)
 		elif verbose == True: 
 			print('--- [Node] : Tractseg already segmented bundle volumes')	
 
+
+		enddir = outputdir + '/endings_segmentations'
+		if not os.path.exists(enddir):
+			os.mkdir(enddir)
+			print('apply TractSeg')
+			command = f'TractSeg -i {bundle_dir}/tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation'
+			subprocess.run(command,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : Tractseg already segmented endings volumes')	
+
+		TOMdir = outputdir + '/TOM'
+		if not os.path.exists(TOMdir):
+			os.mkdir(TOMdir)
+			print('apply TractSeg')
+			command = f'TractSeg -i {bundle_dir}/tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM'
+			subprocess.run(command,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : Tractseg already segmented bundle volumes')	
+
+		Trackingdir = outputdir + '/bundle_segmentations'
+		if not os.path.exists(Trackingdir):
+			os.mkdir(Trackingdir)
+			print('apply TractSeg')
+			command = f'Tracking -i {outputdir}/peaks.nii.gz -o tractseg_output --nr_fibers 5000'
+			subprocess.run(command,shell = True)	
+		elif verbose == True: 
+			print('--- [Node] : Tractseg already segmented bundle volumes')	
 
 		mni2fa = bundle_dir + '/MNI_2_FA.mat'
 		if not os.path.isfile(mni2fa):
@@ -137,7 +189,7 @@ for sub in subject_list:
 		if not os.path.exists(segSubject):
 			os.mkdir(segSubject)
 			print('--- [Node] : Moving bundles masks to subject space')
-			bundles_MNI = os.listdir(os.path.join(output,'bundle_segmentations'))
+			bundles_MNI = os.listdir(os.path.join(outputdir,'bundle_segmentations'))
 			
 			for bundles in bundles_MNI:
 				if verbose: print(f'Moving {bundles} to subject space')
@@ -189,6 +241,16 @@ for sub in subject_list:
 		elif verbose == True:
 			print('--- [Node] : Filtering to 5k fibers per bundle for visualization already done')
 
+		tractometry = f'{bundle_dir}/tractseg_output/Tractometry_{sub}_{ses}.csv'
+		if not os.path.isfile(tractometry):
+			os.mkdir(tractometry)
+			print('apply TractSeg')
+			command = f'Tractometry -i {bundle_dir}/tractseg_output/TOM_trackings/ -o {bundle_dir}/tractseg_output/Tractometry_{sub}_{ses}.csv -e endings_segmentations/ -s {bundle_dir}/FA.nii.gz'
+			subprocess.run(command,shell = True)
+		elif verbose == True: 
+			print('--- [Node] : Tractseg already segmented bundle volumes')	
+
+
 
 		if ViewAllTracts:
 			print('--- [Node] : Viewing whole 5k segmentation')
@@ -216,7 +278,7 @@ for sub in subject_list:
 			
 			tracts_list = os.listdir(tracts_5k)
 
-			command = f'mrview {freesurfer_dir}/brain.mgz '
+			command = f'mrview {freesurfer_dir}/brain.mgz -connectome.init {connectome_dir}/labelconvert/mapflow/_labelconvert2/parcellation.mif -connectome.load {connectome_dir}/tck2connectome/mapflow/_tck2connectome2/connectome.csv '
 			for tracts in tracts_list:
 
 				R = np.random.choice(range(256))
@@ -235,7 +297,7 @@ for sub in subject_list:
 		if ViewTractSegTracts:
 			print('Viewing whole segmentation tractseg')
 			
-			tracts_seg= os.path.join(output,'TOM_trackings')
+			tracts_seg= os.path.join(outputdir,'TOM_trackings')
 			tracts_list = os.listdir(tracts_seg)
 
 			command = f'mrview {bundle_dir}/FA_MNI.nii.gz '
@@ -246,7 +308,7 @@ for sub in subject_list:
 				B = np.random.choice(range(256))
 
 		
-				command_i = f'-tractography.load {tracts_seg}/{tracts} -tractography.geometry pseudotubes -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
+				command_i = f'-mode 3 -imagevisible 0 -tractography.load {tracts_seg}/{tracts} -tractography.geometry pseudotubes -tractography.colour {R},{G},{B} -tractography.opacity 1 ' 
 				command += command_i
 
 			#print(command)
@@ -254,9 +316,6 @@ for sub in subject_list:
 
 
 ### Ajouter TractSeg -i /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_02/tractseg_output/peaks.nii.gz -o /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_02/tractseg_output --output_type endings_segmentation
-
-
-
 ### Ajouter TractSeg -i /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_02/tractseg_output/peaks.nii.gz -o /mnt/CONHECT_data/pipe_healthy/main_workflow/bundle_segmentation/_ses_id_001_subject_id_02/tractseg_output --output_type TOM
 
 

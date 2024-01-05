@@ -26,7 +26,7 @@ for sub in subject_list:
 		print(f"Running on {subject_id} - {session_id}")
 
 		# Set directories
-		main_workflow_dir = '/mnt/CONHECT_data/pipe_healthy/main_workflow'
+		main_workflow_dir = '/mnt/CONHECT_data/pipe_patients/main_workflow'
 		preproc_dir = os.path.join(main_workflow_dir,'preproc',identifier)
 		tracto_dir = os.path.join(main_workflow_dir,'wf_tractography',identifier)
 		connectome_dir = os.path.join(main_workflow_dir,'connectome',identifier)
@@ -131,7 +131,7 @@ for sub in subject_list:
 			    plt.savefig(output_file_path)
 
 			    # Show the plot (optional)
-			    plt.show()
+			    #plt.show()
 
 			# Save the first heatmap
 			save_heatmap(df_sc,outlier_threshold_sc, "sc")

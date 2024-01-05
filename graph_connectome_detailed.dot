@@ -1,0 +1,8 @@
+digraph structs {
+node [shape=record];
+connectomelabelconvert [label="{IN}|{ labelconvert | mrtrix3 |  }|{OUT|<outoutfile> out_file}"];
+connectometransform_parcels [label="{IN|<ininfiles> in_files}|{ transform_parcels | mrtrix3 |  }|{OUT|<outoutfile> out_file}"];
+connectometck2connectome [label="{IN|<ininparc> in_parc}|{ tck2connectome | mrtrix3 |  }|{OUT}"];
+connectomelabelconvert:outoutfile:e -> connectometransform_parcels:ininfiles:w;
+connectometransform_parcels:outoutfile:e -> connectometck2connectome:ininparc:w;
+}
